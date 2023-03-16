@@ -5,7 +5,7 @@ import os, time, sys
 import multiprocessing as mp
 from ipcqueue import InterProcessQueue
 
-iterations = 500
+iterations = 4000
 
 class mel_scale(torch.nn.Module):
     def __init__(self):
@@ -23,6 +23,7 @@ class mel_scale(torch.nn.Module):
         return y
 
 def kernel_emulation(q_name, state_shape, qid):
+    proc_start = time.time()
     print(f"kernel, pid {os.getpid()}")    
     state_q = InterProcessQueue('/'+q_name, state_shape, qid)
     mq = posix_ipc.MessageQueue('/'+q_name, 0)
@@ -34,6 +35,7 @@ def kernel_emulation(q_name, state_shape, qid):
     torch.set_num_threads(2)
     input = torch.rand(4, 1024, 768, dtype=torch.float32)
 
+    loop_start = time.time()    
     for i in range(iterations):    
         start  = time.time()    
         time.sleep(0.010) # sleep 10 ms
@@ -42,11 +44,14 @@ def kernel_emulation(q_name, state_shape, qid):
         #print(f"shape:{output.shape}, type:{output.dtype}")
         state_q.push_as_tensor(input, (4,1024,768))        
         time_list[i] = end - start
-        print(f"kernel, q {state_q._name} push")
+        #print(f"kernel, q {state_q._name} push")
+    loop_end = time.time()    
 
-    print(f"kernel:{np.median(time_list)}")
+    print(f"emu-kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
+    #print(f"kernel:{np.median(time_list)}")
 
 def kernel_fn(q_name, state_shape, qid):
+    proc_start = time.time()
     print(f"kernel, pid {os.getpid()}")    
     state_q = InterProcessQueue('/'+q_name, state_shape, qid)
     mq = posix_ipc.MessageQueue('/'+q_name, 0)
@@ -58,6 +63,7 @@ def kernel_fn(q_name, state_shape, qid):
     torch.set_num_threads(2)
     input = torch.rand(4, 1024, 768, dtype=torch.float32)
 
+    loop_start = time.time()  
     for i in range(iterations):    
         start  = time.time()    
         output = torch.fft.fft(input)
@@ -66,11 +72,14 @@ def kernel_fn(q_name, state_shape, qid):
         #print(f"shape:{output.shape}, type:{output.dtype}")
         state_q.push_as_tensor(input, (4,1024,768))        
         time_list[i] = end - start
-        print(f"kernel, q {state_q._name} push")
+        #print(f"kernel, q {state_q._name} push")
+    loop_end = time.time()  
 
-    print(f"kernel:{np.median(time_list)}")
+    #print(f"kernel:{np.median(time_list)}")
+    print(f"kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
 
 def datamotion_fn(q_name, state_shape, qid):
+    proc_start = time.time()
     print(f"data-motion, pid {os.getpid()}")    
     state_q = InterProcessQueue('/'+q_name, state_shape, qid)
     mq = posix_ipc.MessageQueue('/'+q_name, 0)
@@ -86,15 +95,18 @@ def datamotion_fn(q_name, state_shape, qid):
     model = mel_scale().to(device)
     model.eval()
     
+    loop_start = time.time()  
     for i in range(iterations):
         input_tensor = state_q.pop_as_tensor()
         start  = time.time()      
         output = model(input_tensor)
         end  = time.time()      
         time_list[i] = end - start
-        print(f"data-motion, q {state_q._name} pop")    
+        #print(f"data-motion, q {state_q._name} pop")    
     #print(input.shape)
-    print(f"data motion:{np.median(time_list)}")
+    #print(f"data motion:{np.median(time_list)}")
+    loop_end = time.time()  
+    print(f"dm-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
 
 
 # setup for message queue
@@ -105,6 +117,10 @@ num_kernels = 2
 kernel_emulated = False
 num_kernels = int(sys.argv[1])
 kernel_emulated = bool(sys.argv[2])
+#iterations = bool(sys.argv[3]) # 100 for 16 kernels, 2000 for 2 kernels
+
+if kernel_emulated == True:
+    print("kernel is emulated in this run")
 
 qlist = []
 for qid in range(num_kernels):
@@ -134,6 +150,7 @@ for qid in range(num_kernels):
     kernel_handle_list.append(kernel_handle)
     dm_handle_list.append(dm_handle)
 
+start = time.time() 
 for qid in range(num_kernels):
     dm_handle_list[qid].start()
     kernel_handle_list[qid].start()
@@ -141,6 +158,12 @@ for qid in range(num_kernels):
 for qid in range(num_kernels):
     dm_handle_list[qid].join()
     kernel_handle_list[qid].join()
+end = time.time() 
+
+print(f"total_req_latency:{end-start}")
+
+per_req_latency= (end-start)/iterations
+print(f"per_req_latency:{per_req_latency}")
 
 for q in qlist:
     q.destory()

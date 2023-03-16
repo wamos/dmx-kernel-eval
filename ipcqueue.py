@@ -13,14 +13,14 @@ class InterProcessQueue():
         self._dtype_str = np.dtype(np.float32).str
     
     def init_queue(self, queue):
-        print(f"{self._name} init")
+        #print(f"{self._name} init")
         self._queue = queue
         ## q init with wrong message size
         #print(f"q init msg-size:{self._queue.max_message_size}")
         #print(f"q init max_messages:{self._queue.max_messages}")
 
     def __del__(self):
-         print(f"{self._name} del")
+         #print(f"{self._name} del")
          self._queue.close()
          #self._queue.unlink()
 

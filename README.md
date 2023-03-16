@@ -41,6 +41,18 @@ This runs two kernels with real FFT kernel, not emulated
 sudo rdtset -t 'l3=0x1f;cpu=0,2' -c 0,2  python3 kernel_dm_pair.py 2 0
 ```
 
+## Common errors
+```
+OSError: This process already has the maximum number of files open
+```
+1. First, check if there are existing message queues from the last runs by `ls /dev/mqueue/`
+
+2. If so, delete these queues by `rm /dev/mqueue/*`
+
+3. If it's not the case, try `ulimit -q` to see if the resource limit is set to 12884901888 instead of the defualt values.
+
+4. Finally, `ps aux | grep kernel_dm_pair` to see if our running python code are not terminaed properly and occupies these message queues. 
+
 
 
 
