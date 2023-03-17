@@ -5,7 +5,7 @@ import os, time, sys
 import multiprocessing as mp
 from ipcqueue import InterProcessQueue
 
-iterations = 100
+iterations = 200
 
 class concat_cast_flatten(torch.nn.Module):
         def __init__(self):
@@ -177,9 +177,9 @@ def datamotion_fn(state_name, state_shape, qid):
 
 
 # setup for message queue
-max_msg_count = 48
+max_msg_count = 60
+max_msg_size = 12582912
 #max_msg_size = 12582912 #16777216 # 4096 * 768 * 4, 4 bytes for float32
-max_msg_size = 16777216
 
 num_kernels = 2
 kernel_emulated = False
@@ -198,6 +198,7 @@ if benchmark_name == "mel_scale":
 elif benchmark_name == "reshape_casting":
     shape = (4,1024,1024)
     max_msg_size = 16777216
+    max_msg_count = 40
 elif benchmark_name== "image_resize":
     shape = (4,1024,768)
     max_msg_size = 12582912

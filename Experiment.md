@@ -212,20 +212,21 @@ per_req_latency:0.1616775164604187
 ## Benchmark 3: FFT -> Data motion
 ### (4 physical cores, 2 way of LLC, 20% of memory bandwidth)
 Command: 2 emulated kernels, using iterations = 2000  
-`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py 2 1`  
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py reshape_casting 2 1`  
 
 Output:  
 ```
-emu-kernel-0, exec:126.77588486671448, overhead:0.5669536590576172
-emu-kernel-1, exec:126.78809833526611, overhead:0.561945915222168
-dm-0, exec:130.01016283035278, overhead:0.5228912830352783
-dm-1, exec:129.98966002464294, overhead:0.5413861274719238
-total_req_latency:130.5536208152771
-per_req_latency:0.06527681040763855
+emu-kernel-1, exec:111.54481172561646, overhead:0.5854175090789795
+emu-kernel-0, exec:111.54744219779968, overhead:0.5878133773803711
+dm-0, exec:114.45845746994019, overhead:0.488372802734375
+dm-1, exec:114.38618588447571, overhead:0.5553381443023682
+total_req_latency:114.96516704559326
+per_req_latency:0.05748258352279663
+57.483
 ```
 
 Command: 16 emulated kernels, using iterations = 200 (2000 takes way too long)  
-`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py 16 1`
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py reshape_casting 16 1`
 
 Output:  
 ```
