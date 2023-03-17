@@ -1,11 +1,10 @@
-# Experiment Record
+# Scaling # of kernels with fixed cores
 
-## Scaling # of kernels with fixed cores
-
+## Benchmark 2: FFT -> Data motion
 
 ### (2 physical cores, 1 way of LLC, 10% of memory bandwidth)
 Command: 2 emulated kernels, using iterations = 2000    
-`sudo rdtset -t 'mba=10,l3=0x01;cpu=0,2' -c 0,2  python3 kernel_dm_pair.py 2 1` 
+`sudo rdtset -t 'mba=10;l3=0x01;cpu=0,2' -c 0,2  python3 kernel_dm_pair.py 2 1` 
 
 Output:  
 ```
@@ -18,7 +17,7 @@ per_req_latency:0.12848939871788026
 ```  
 
 Command: 16 emulated kernels, using iterations = 100 (2000 takes way too long)
-`sudo rdtset -t 'mba=10,l3=0x01;cpu=0,2' -c 0,2  python3 kernel_dm_pair.py 16 1`  
+`sudo rdtset -t 'mba=10;l3=0x01;cpu=0,2' -c 0,2  python3 kernel_dm_pair.py 16 1`  
 
 Output:  
 ```
@@ -45,7 +44,7 @@ per_req_latency:1.100089235305786
 
 ### (4 physical cores, 2 way of LLC, 20% of memory bandwidth)
 Command: 2 emulated kernels, using iterations = 2000  
-`sudo rdtset -t 'mba=20,l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py 2 1`  
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py 2 1`  
 
 Output:  
 ```
@@ -58,7 +57,7 @@ per_req_latency:0.06520442581176758
 ```  
 
 Command: 16 emulated kernels, using iterations = 200 (2000 takes way too long)  
-`sudo rdtset -t 'mba=20,l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py 16 1`
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py 16 1`
 
 Output:  
 ```
@@ -100,7 +99,7 @@ per_req_latency:0.365264595746994
 
 ### (8 physical cores, 4 way of LLC, 40% of memory bandwidth)
 Command: 16 emulated kernels, using iterations = 4000 
-`sudo rdtset -t 'mba=40,l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16  python3 kernel_dm_pair.py 2 1`  
+`sudo rdtset -t 'mba=40;l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16  python3 kernel_dm_pair.py 2 1`  
 
 Output:  
 ```
@@ -114,7 +113,7 @@ per_req_latency:0.030379123270511628
 
 
 Command: 16 emulated kernels, using iterations = 400 (2000 takes way too long)  
-`sudo rdtset -t 'mba=40,l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16  python3 kernel_dm_pair.py 16 1`
+`sudo rdtset -t 'mba=40;l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16  python3 kernel_dm_pair.py 16 1`
 
 Output:  
 ```
@@ -156,7 +155,7 @@ per_req_latency:0.16508741426467896
 
 ### (16 physical cores, 8 way of LLC, 80% of memory bandwidth)
 Command: 16 emulated kernels, using iterations = 4000    
-`sudo rdtset -t 'mba=80,l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30  python3 kernel_dm_pair.py 2 1`  
+`sudo rdtset -t 'mba=80;l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30  python3 kernel_dm_pair.py 2 1`  
 
 Output:  
 ```
@@ -169,7 +168,7 @@ per_req_latency:0.025633119702339172
 ```
 
 Command: 16 emulated kernels, using iterations = 2000
-`sudo rdtset -t 'mba=80,l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30  python3 kernel_dm_pair.py 16 1`
+`sudo rdtset -t 'mba=80;l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30  python3 kernel_dm_pair.py 16 1`
 
 Output:  
 ```
@@ -210,18 +209,137 @@ per_req_latency:0.1616775164604187
 
 ```
 
-### Backup
-Command:
-`sudo rdtset -t 'l3=0x0f;cpu=0,2' -c 0,2  python3 kernel_dm_pair.py 2 1`  
+## Benchmark 3: FFT -> Data motion
+### (4 physical cores, 2 way of LLC, 20% of memory bandwidth)
+Command: 2 emulated kernels, using iterations = 2000  
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py 2 1`  
 
-Output:
+Output:  
 ```
-emu-kernel-0, exec:63.50490212440491, overhead:1.1171343326568604
-emu-kernel-1, exec:64.95269894599915, overhead:1.1539866924285889
-
-dm-0, exec:65.00549507141113, overhead:0.7370150089263916
-dm-1, exec:66.20995998382568, overhead:0.82527756690979
-
-total_req_latency:67.06000137329102
-per_req_latency:0.03353000068664551 -> 33.530 ms
+emu-kernel-0, exec:126.77588486671448, overhead:0.5669536590576172
+emu-kernel-1, exec:126.78809833526611, overhead:0.561945915222168
+dm-0, exec:130.01016283035278, overhead:0.5228912830352783
+dm-1, exec:129.98966002464294, overhead:0.5413861274719238
+total_req_latency:130.5536208152771
+per_req_latency:0.06527681040763855
 ```
+
+Command: 16 emulated kernels, using iterations = 200 (2000 takes way too long)  
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_pair.py 16 1`
+
+Output:  
+```
+emu-kernel-0, exec:91.03020286560059, overhead:3.0045082569122314
+emu-kernel-11, exec:88.87767577171326, overhead:2.3816466331481934
+dm-11, exec:98.48174142837524, overhead:0.9152927398681641
+dm-0, exec:101.26088523864746, overhead:0.7398645877838135
+emu-kernel-8, exec:113.92832398414612, overhead:3.021606922149658
+emu-kernel-2, exec:115.73171281814575, overhead:3.3651058673858643
+emu-kernel-3, exec:121.9060537815094, overhead:3.31766676902771
+dm-8, exec:122.42664217948914, overhead:1.4711501598358154
+emu-kernel-6, exec:121.7952196598053, overhead:3.401657819747925
+dm-2, exec:124.32114791870117, overhead:1.43454909324646
+emu-kernel-14, exec:121.2110812664032, overhead:1.3094151020050049
+emu-kernel-10, exec:126.32863664627075, overhead:2.541132926940918
+emu-kernel-13, exec:126.71329736709595, overhead:1.7417302131652832
+emu-kernel-1, exec:130.17795324325562, overhead:2.9692342281341553
+emu-kernel-9, exec:128.41953659057617, overhead:2.881521701812744
+emu-kernel-4, exec:129.81242322921753, overhead:3.633949041366577
+emu-kernel-5, exec:129.91193842887878, overhead:3.401717185974121
+emu-kernel-7, exec:129.74720883369446, overhead:3.1017379760742188
+emu-kernel-12, exec:128.91216397285461, overhead:2.0567140579223633
+emu-kernel-15, exec:129.36524653434753, overhead:1.0212125778198242
+dm-3, exec:133.46586966514587, overhead:1.3950045108795166
+dm-6, exec:132.90354752540588, overhead:1.7719013690948486
+dm-14, exec:130.83173274993896, overhead:1.2549622058868408
+dm-10, exec:133.99469470977783, overhead:1.3070006370544434
+dm-13, exec:133.6438126564026, overhead:1.1708133220672607
+dm-5, exec:138.6488480567932, overhead:1.5510668754577637
+dm-1, exec:139.8926498889923, overhead:0.759850263595581
+dm-4, exec:139.06359791755676, overhead:1.5030221939086914
+dm-9, exec:137.328519821167, overhead:1.2269768714904785
+dm-7, exec:138.37351846694946, overhead:1.234938621520996
+dm-12, exec:136.78297519683838, overhead:1.378990888595581
+dm-15, exec:136.3050718307495, overhead:0.8229389190673828
+total_req_latency:141.13427925109863
+per_req_latency:0.35283569812774657
+```
+
+### (8 physical cores, 4 way of LLC, 40% of memory bandwidth)
+Command: 2 emulated kernels, using iterations = 4000 
+`sudo rdtset -t 'mba=40;l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16  python3 kernel_dm_pair.py 2 1`  
+
+Output:  
+```
+emu-kernel-1, exec:57.60019898414612, overhead:0.2924530506134033
+emu-kernel-0, exec:58.17378044128418, overhead:0.31509923934936523
+dm-1, exec:59.015586614608765, overhead:0.27179908752441406
+dm-0, exec:59.601850509643555, overhead:0.2748868465423584
+total_req_latency:59.89042258262634
+per_req_latency:29.94521129131317
+per_req_latency:29.945
+```
+
+
+Command: 16 emulated kernels, using iterations = 400 (2000 takes way too long)  
+`sudo rdtset -t 'mba=40;l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16  python3 kernel_dm_pair.py 16 1`
+
+Output:  
+```
+emu-kernel-1, exec:57.34511351585388, overhead:1.4295971393585205
+emu-kernel-8, exec:57.14862942695618, overhead:1.058030605316162
+emu-kernel-10, exec:57.41576647758484, overhead:0.742398738861084
+emu-kernel-3, exec:57.745171308517456, overhead:1.560554027557373
+emu-kernel-13, exec:57.510372161865234, overhead:0.682330846786499
+emu-kernel-2, exec:58.28313374519348, overhead:1.2847521305084229
+emu-kernel-4, exec:58.144585371017456, overhead:1.269648790359497
+emu-kernel-6, exec:58.18789768218994, overhead:1.7100141048431396
+emu-kernel-7, exec:58.28078842163086, overhead:1.4540300369262695
+emu-kernel-14, exec:58.02410674095154, overhead:0.4942948818206787
+emu-kernel-0, exec:58.58882451057434, overhead:1.5726566314697266
+emu-kernel-11, exec:58.49199962615967, overhead:0.8378791809082031
+emu-kernel-5, exec:58.7255654335022, overhead:1.5823006629943848
+emu-kernel-9, exec:59.01183605194092, overhead:0.9904394149780273
+emu-kernel-12, exec:59.278160095214844, overhead:0.8447577953338623
+emu-kernel-15, exec:59.74491214752197, overhead:0.5775594711303711
+dm-1, exec:64.49200367927551, overhead:0.6844427585601807
+dm-8, exec:64.12058639526367, overhead:0.7681527137756348
+dm-10, exec:63.750560998916626, overhead:0.6839907169342041
+dm-3, exec:64.82851505279541, overhead:0.6512892246246338
+dm-2, exec:64.98240447044373, overhead:0.6823780536651611
+dm-13, exec:64.0021333694458, overhead:0.3988769054412842
+dm-6, exec:64.93957805633545, overhead:0.7673330307006836
+dm-11, exec:64.5116446018219, overhead:0.6911706924438477
+dm-14, exec:64.31970691680908, overhead:0.34301257133483887
+dm-7, exec:65.07957482337952, overhead:0.7754957675933838
+dm-4, exec:65.47955441474915, overhead:0.6845049858093262
+dm-0, exec:65.57494616508484, overhead:0.600252628326416
+dm-5, exec:65.25306987762451, overhead:0.8992166519165039
+dm-9, exec:65.15108275413513, overhead:0.4632282257080078
+dm-12, exec:64.91298413276672, overhead:0.4551219940185547
+dm-15, exec:64.51968312263489, overhead:0.3312509059906006
+total_req_latency:66.56617546081543
+per_req_latency:0.16641543865203856
+```
+
+### (16 physical cores, 8 way of LLC, 80% of memory bandwidth)
+Command: 16 emulated kernels, using iterations = 4000    
+`sudo rdtset -t 'mba=80;l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30  python3 kernel_dm_pair.py 2 1`  
+
+Output:  
+```
+emu-kernel-0, exec:105.12375235557556, overhead:0.20046305656433105
+emu-kernel-1, exec:105.1499879360199, overhead:0.19762682914733887
+dm-0, exec:106.27944803237915, overhead:0.17474913597106934
+dm-1, exec:106.29882669448853, overhead:0.17559170722961426
+total_req_latency:106.49171662330627
+per_req_latency:0.026622929155826567
+```
+
+Command: 16 emulated kernels, using iterations = 2000
+`sudo rdtset -t 'mba=80;l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30  python3 kernel_dm_pair.py 16 1`
+
+Output:  
+
+
+## Benchmark 1: Video Codec -> Data motion
