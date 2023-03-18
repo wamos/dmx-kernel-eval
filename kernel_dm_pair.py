@@ -5,7 +5,7 @@ import os, time, sys
 import multiprocessing as mp
 from ipcqueue import InterProcessQueue
 
-iterations = 200
+iterations = 2000
 
 class concat_cast_flatten(torch.nn.Module):
         def __init__(self):
@@ -82,6 +82,7 @@ def kernel_emulation(state_name, state_shape, qid):
     else:
         delayed_secs = 0.010
     print(f"{state_name}: emulated execution delay {delayed_secs}")
+    print(f"iter:{iterations}")
 
     torch.set_num_threads(2)
     #print(state_shape[0], state_shape[1], state_shape[2])
@@ -101,6 +102,7 @@ def kernel_emulation(state_name, state_shape, qid):
         #print(f"kernel, q {state_q._name} push")
     loop_end = time.time()    
 
+    print(f"kernel:{np.median(time_list)}")
     print(f"emu-kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
     #print(f"kernel:{np.median(time_list)}")
 
@@ -130,7 +132,7 @@ def kernel_fn(state_name, state_shape, qid):
         #print(f"kernel, q {state_q._name} push")
     loop_end = time.time()  
 
-    #print(f"kernel:{np.median(time_list)}")
+    print(f"kernel:{np.median(time_list)}")
     print(f"kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
 
 def datamotion_fn(state_name, state_shape, qid):
@@ -159,6 +161,7 @@ def datamotion_fn(state_name, state_shape, qid):
     else:
         model = mel_scale().to(device)
     print(f"using {state_name} data motion")
+    print(f"iter:{iterations}")
 
     model.eval()
     
@@ -170,9 +173,9 @@ def datamotion_fn(state_name, state_shape, qid):
         end  = time.time()      
         time_list[i] = end - start
         #print(f"data-motion, q {state_q._name} pop")    
-    #print(input.shape)
-    #print(f"data motion:{np.median(time_list)}")
+    #print(input.shape)    
     loop_end = time.time()  
+    print(f"dm-{qid}, data motion:{np.median(time_list)}")
     print(f"dm-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
 
 
@@ -186,6 +189,14 @@ kernel_emulated = False
 benchmark_name = sys.argv[1]
 num_kernels = int(sys.argv[2])
 kernel_emulated = bool(sys.argv[3])
+
+# global iterations
+# iterations = 200
+# if num_kernels == 16:
+#     iterations = 400
+# elif num_kernels == 2:
+#     iterations = 2000
+
 #iterations = bool(sys.argv[3]) # 100 for 16 kernels, 2000 for 2 kernels
 
 if kernel_emulated == True:
@@ -203,7 +214,7 @@ elif benchmark_name== "image_resize":
     shape = (4,1024,768)
     max_msg_size = 12582912
 elif benchmark_name== "concat_cast_flatten_aes":
-    shape = (128,768,8)
+    shape = (128,768,16)
     max_msg_size = 12582912
 elif benchmark_name== "concat_cast_flatten_gzip":
     shape = (4, 1024, 512)
