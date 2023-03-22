@@ -5,7 +5,7 @@ import os, time, sys
 import multiprocessing as mp
 from ipcqueue import InterProcessQueue
 
-iterations = 2000
+global iterations 
 
 class concat_cast_flatten(torch.nn.Module):
         def __init__(self):
@@ -188,14 +188,26 @@ num_kernels = 2
 kernel_emulated = False
 benchmark_name = sys.argv[1]
 num_kernels = int(sys.argv[2])
-kernel_emulated = bool(sys.argv[3])
+cores = int(sys.argv[3])
+kernel_emulated = bool(sys.argv[4])
 
-# global iterations
-# iterations = 200
-# if num_kernels == 16:
-#     iterations = 400
-# elif num_kernels == 2:
-#     iterations = 2000
+if num_kernels == 1:
+    iterations = 3000
+    if cores == 16:
+        iterations = 5000
+elif num_kernels == 5:
+    iterations = 2000
+elif num_kernels == 10:
+    iterations = 1000 
+    if cores == 16:
+        iterations = 1500
+elif num_kernels == 15:
+    iterations = 500 
+    if cores == 16:
+        iterations = 750
+else:
+    print("invalid number of kernels")
+    exit()
 
 #iterations = bool(sys.argv[3]) # 100 for 16 kernels, 2000 for 2 kernels
 

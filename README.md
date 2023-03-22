@@ -13,7 +13,7 @@ PyTorch is needed for both FFT and DMX operations.
 ## Message Queue Setup
 We'll need to modify the resource limits of the OS so we can pass large block of data between processes.
 
-1. Open the limits config file with `vim /etc/security/limits.conf` and append this line `* hard msgqueue 12884901888` at the end of the file. 
+1. Open the limits config file with `vim /etc/security/limits.conf` and append this line `* hard msgqueue 128849018880` at the end of the file. 
 
 2. Reboot the machine to make this effective.
 
@@ -21,7 +21,7 @@ We'll need to modify the resource limits of the OS so we can pass large block of
 ```shell
 sudo su
 echo 16777216 > /proc/sys/fs/mqueue/msgsize_max
-echo 64 > /proc/sys/fs/mqueue/msg_max
+echo 128 > /proc/sys/fs/mqueue/msg_max
 ```
 
 4. Run the command to check out the current resource limit for message queues on the shell. 
@@ -35,7 +35,21 @@ ulimit -q
 ulimit -q 12884901888
 ```
 
-6. You should be good to go to run `kernel_dm_pair.py` with `rdtset`.
+6. Turn off SMT/HT at runtime
+```shell
+sudo su
+echo off > /sys/devices/system/cpu/smt/control
+```
+
+7. Set CPU frequency to 2 GHz
+```shell
+sudo apt-get install -y linux-tools-common linux-tools-$(uname -r)
+cpupower frequency-info
+sudo cpupower frequency-set -u 2.0GHz #set the max frequency
+sudo cpupower frequency-set -d 2.0GHz #set the min frequency
+```
+
+7. You should be good to go to run `kernel_dm_pair.py` with `rdtset`.
 This runs two kernels with real FFT kernel, not emulated 
 ```shell
 sudo rdtset -t 'l3=0x1f;cpu=0,2' -c 0,2  python3 kernel_dm_pair.py 2 0
