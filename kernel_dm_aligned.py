@@ -198,7 +198,7 @@ def kernel_emulation(state_name, state_shape, qid):
         #print(f"kernel, q {state_q._name} push")
     loop_end = time.time()
 
-    print(f"comp_list[{qid}]: {comp_list[qid]}")
+    #print(f"comp_list[{qid}]: {comp_list[qid]}")
     comp_list[qid] = 1 # mark this qid as completed
     print(f"load-gen-{qid} is done as {comp_list[qid]}")
 
@@ -322,7 +322,6 @@ else:
     print("invalid number of kernels")
     exit()
 
-#exit()
 
 # if num_kernels == 1:
 #     iterations = 3000
@@ -435,9 +434,9 @@ for qid in range(num_kernels):
 while comp_list[-1] == 0:
     value = 1
     for i in range(num_kernels):
-        print(f"v:{value}, comp: {comp_list[i]}")
+        #print(f"v:{value}, comp: {comp_list[i]}")
         value = value and comp_list[i]
-    print(f"termination value: {value}")
+    #print(f"termination value: {value}")
     time.sleep(1)
     comp_list[-1] = value 
 
