@@ -58,6 +58,59 @@ class mel_scale(torch.nn.Module):
         y = y.type(torch.CharTensor)
         return y
 
+def acc_kernel_emulation(state_name, state_shape, qid):
+    q_name = f"{state_name}{qid}"
+    proc_start = time.time()
+    print(f"kernel, pid {os.getpid()}")    
+    state_q = InterProcessQueue('/'+q_name, state_shape, qid)
+    mq = posix_ipc.MessageQueue('/'+q_name, 0)
+    state_q.init_queue(mq)
+    time_list = np.zeros(iterations)
+    # print(f"name:{state_q.name}")
+    # print(f"qsize:{state_q.qsize}")
+
+    if state_name == "mel_scale":
+        delayed_secs = 22.801/8*0.001
+    elif state_name == "reshape_casting":
+        delayed_secs = 30.507/8*0.001
+    elif state_name== "image_resize":
+        delayed_secs = 16.66/8*0.001        
+    elif state_name== "concat_cast_flatten_aes":
+        delayed_secs = 1.138/2*0.001 
+    elif state_name== "concat_cast_flatten_gzip":
+        delayed_secs = 8.095/8*0.001
+    else:
+        delayed_secs = 0.010
+    print(f"{state_name}: emulated execution delay {delayed_secs}")
+    print(f"iter:{iterations}")
+
+    torch.set_num_threads(2)
+    #print(state_shape[0], state_shape[1], state_shape[2])
+    input = torch.rand(state_shape[0], state_shape[1], state_shape[2], dtype=torch.float32) #benchmark-2, benchmark-1
+    #input = torch.rand(4, 1024, 1024, dtype=torch.float32) #benchmark-3
+
+    loop_start = time.time()    
+    for i in range(iterations):    
+        start  = time.time()    
+        time.sleep(delayed_secs) # sleep 10 ms as the default setup
+        #output = output.real
+        end  = time.time()  
+        #print(f"shape:{output.shape}, type:{output.dtype}")
+        #state_q.push_as_tensor(input, (4,1024,768)) #benchmark-2, benchmark-1   
+        state_q.push_as_tensor(input, state_shape) #benchmark-3
+        time_list[i] = end - start
+        #print(f"kernel, q {state_q._name} push")
+    loop_end = time.time()    
+
+    print(f"kernel:{np.median(time_list)}")
+    print(f"emu-kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
+    #print(f"kernel:{np.median(time_list)}")
+
+
+
+
+
+
 def kernel_emulation(state_name, state_shape, qid):
     q_name = f"{state_name}{qid}"
     proc_start = time.time()
@@ -186,10 +239,13 @@ max_msg_size = 12582912
 
 num_kernels = 2
 kernel_emulated = False
+acc_emulated = False
+
 benchmark_name = sys.argv[1]
 num_kernels = int(sys.argv[2])
 cores = int(sys.argv[3])
 kernel_emulated = bool(sys.argv[4])
+acc_emulated = bool(sys.argv[5])
 
 if num_kernels == 1:
     iterations = 3000
@@ -259,7 +315,10 @@ for qid in range(num_kernels):
     state_name = f"{benchmark_name}"
 
     if kernel_emulated == True:
-        kernel_handle = mp.Process(target=kernel_emulation, args=(state_name, shape, qid))
+        if acc_emulated == False:
+            kernel_handle = mp.Process(target=kernel_emulation, args=(state_name, shape, qid))
+        else:
+            kernel_handle = mp.Process(target=acc_kernel_emulation, args=(state_name, shape, qid))
     else:
         kernel_handle = mp.Process(target=kernel_fn, args=(state_name, shape, qid))
 
