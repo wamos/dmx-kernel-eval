@@ -104,7 +104,7 @@ def acc_kernel_emulation(state_name, state_shape, qid):
         #print(f"acc-kernel, q {state_q._name} push")
     loop_end = time.time() 
 
-    comp_list[qid] = 1 # mark this qid as completed
+    comp_list[qid*2] = 1 # mark this qid as completed
     print(f"load-gen-{qid} is done as {comp_list[qid]}")  
 
     while comp_list[-1] == 0:  
@@ -160,7 +160,7 @@ def kernel_emulation(state_name, state_shape, qid):
         #print(f"kernel, q {state_q._name} push")
     loop_end = time.time()    
 
-    comp_list[qid] = 1 # mark this qid as completed
+    comp_list[qid*2] = 1 # mark this qid as completed
     print(f"load-gen-{qid} is done as {comp_list[qid]}")
 
     while comp_list[-1] == 0:  
@@ -238,10 +238,13 @@ def datamotion_fn(state_name, state_shape, qid, num_threads):
         output = model(input_tensor)
         end  = time.time()      
         time_list[i] = end - start
+        #print(f"qid{qid},iter{i}")
         #print(f"data-motion, q {state_q._name} pop")
     #print(input.shape)    
-    loop_end = time.time()  
+    loop_end = time.time()
 
+    comp_list[qid*2+1] = 1 # mark this qid as completed
+    # while-loop for the case of kernel is running slower than the data motion operations
     while comp_list[-1] == 0:  
         input_tensor = state_q.pop_as_tensor(timeout=1)
         if state_q.qsize == 0:
@@ -270,11 +273,11 @@ num_threads = num_cores
 num_iter = int(sys.argv[6])
 
 if num_kernels == 1:
-    iterations = num_iter
+    iterations = num_iter # 4000
     if num_cores == 16:
         iterations = 5000
 elif num_kernels == 5:
-    iterations = 2000
+    iterations = num_iter #2000
 elif num_kernels == 10:
     iterations = 1000 
     if num_cores == 16:
@@ -314,7 +317,7 @@ print(f"{benchmark_name}: {shape} with max_msg_size {max_msg_size}")
 #exit()
 
 # 0 for not done, 1 for completed, comp_list[-1] is for the aggregated status
-initlist = [0] * (num_kernels + 1) 
+initlist = [0] * (num_kernels*2 + 1) 
 comp_list = shm.ShareableList(initlist, name='completion_status')
 print(comp_list)
 
@@ -360,7 +363,9 @@ for qid in range(num_kernels):
 
 while comp_list[-1] == 0:
     value = 1
-    for i in range(num_kernels):
+    # the length of the list is 2*num_kernels+1
+    # the last one is for AND aggregated value
+    for i in range(num_kernels*2): 
         #print(f"v:{value}, comp: {comp_list[i]}")
         value = value and comp_list[i]
     #print(f"termination value: {value}")
