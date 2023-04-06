@@ -97,19 +97,14 @@ def acc_kernel_emulation(state_name, state_shape, qid):
         end  = time.time()  
         #print(f"shape:{output.shape}, type:{output.dtype}")
         #state_q.push_as_tensor(input, (4,1024,768)) #benchmark-2, benchmark-1   
-        state_q.push_as_tensor(input, state_shape) #benchmark-3
+        state_q.push_as_tensor(input, state_shape, blocking= False) #benchmark-3
         time_list[i] = end - start
-        #print(f"kernel, q {state_q._name} push")
+        #print(f"acc-kernel, q {state_q._name} push")
     loop_end = time.time()    
 
     print(f"kernel:{np.median(time_list)}")
-    print(f"emu-kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
+    print(f"acc-emu-kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
     #print(f"kernel:{np.median(time_list)}")
-
-
-
-
-
 
 def kernel_emulation(state_name, state_shape, qid):
     q_name = f"{state_name}{qid}"
@@ -129,7 +124,7 @@ def kernel_emulation(state_name, state_shape, qid):
     elif state_name== "image_resize":
         delayed_secs = 1.5*3.385*0.001        
     elif state_name== "concat_cast_flatten_aes":
-        delayed_secs = 1.5*43.734*0.001
+        delayed_secs = 1.5*18.517*0.001
     elif state_name== "concat_cast_flatten_gzip":
         delayed_secs = 1.5*22.254*0.001
     else:
@@ -225,7 +220,7 @@ def datamotion_fn(state_name, state_shape, qid):
         output = model(input_tensor)
         end  = time.time()      
         time_list[i] = end - start
-        #print(f"data-motion, q {state_q._name} pop")    
+        #print(f"data-motion, q {state_q._name} pop")
     #print(input.shape)    
     loop_end = time.time()  
     print(f"dm-{qid}, data motion:{np.median(time_list)}")

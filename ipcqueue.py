@@ -45,11 +45,11 @@ class InterProcessQueue():
             raise RuntimeError(f"POSIXMsgQueue {self._name} of {self._shape} \
                 shape can't push with wrong arguement item_shape {item_shape} or wrong item.shape {item.shape}")
     
-    def push_as_tensor(self, item: torch.tensor, item_shape: tuple, timeout=None):
+    def push_as_tensor(self, item: torch.tensor, item_shape: tuple, timeout=None, blocking=True):
         item_numpy = item.numpy()
         item_bytes = item_numpy.tobytes()
         #self._queue.send(item_bytes)
-        if self._queue.current_messages == self._queue.max_messages:
+        if blocking == False and self._queue.current_messages == self._queue.max_messages:
             return
         self._queue.send(item_bytes, timeout=timeout)
     

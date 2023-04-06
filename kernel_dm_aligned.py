@@ -172,7 +172,7 @@ def kernel_emulation(state_name, state_shape, qid):
     elif state_name== "image_resize":
         delayed_secs = 1.5*3.385*0.001        
     elif state_name== "concat_cast_flatten_aes":
-        delayed_secs = 1.5*43.734*0.001
+        delayed_secs = 1.5*18.517*0.001
     elif state_name== "concat_cast_flatten_gzip":
         delayed_secs = 1.5*22.254*0.001
     else:
@@ -193,7 +193,7 @@ def kernel_emulation(state_name, state_shape, qid):
         end  = time.time()  
         #print(f"shape:{output.shape}, type:{output.dtype}")
         #state_q.push_as_tensor(input, (4,1024,768)) #benchmark-2, benchmark-1   
-        state_q.push_as_tensor(input, state_shape) #benchmark-3
+        state_q.push_as_tensor(input, state_shape, blocking= False)
         time_list[i] = end - start
         #print(f"kernel, q {state_q._name} push")
     loop_end = time.time()
