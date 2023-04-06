@@ -3,21 +3,22 @@ import torch
 import posix_ipc
 import os, time, sys
 import multiprocessing as mp
+from multiprocessing import shared_memory as shm
 from ipcqueue import InterProcessQueue
 
 global iterations 
 
 class concat_cast_flatten(torch.nn.Module):
-        def __init__(self):
-            super(concat_cast_flatten, self).__init__() 
+    def __init__(self):
+        super(concat_cast_flatten, self).__init__() 
 
-        def forward(self, x):       
-            xc = torch.cat((x, x), 1)
-            xt = xc.type(torch.IntTensor)
-            xt = torch.div(xc,2)	
-            xt = torch.transpose(xt,1,2)		
-            xf = torch.flatten(xt,1)
-            return xf
+    def forward(self, x):       
+        xc = torch.cat((x, x), 1)
+        xt = xc.type(torch.IntTensor)
+        xt = torch.div(xc,2)	
+        xt = torch.transpose(xt,1,2)		
+        xf = torch.flatten(xt,1)
+        return xf
 
 class reshape_casting(torch.nn.Module):
     def __init__(self):
@@ -68,6 +69,7 @@ def acc_kernel_emulation(state_name, state_shape, qid):
     time_list = np.zeros(iterations)
     # print(f"name:{state_q.name}")
     # print(f"qsize:{state_q.qsize}")
+    comp_list = shm.ShareableList(name='completion_status')
 
     if state_name == "mel_scale":
         delayed_secs = 22.801/8*0.001
@@ -100,7 +102,14 @@ def acc_kernel_emulation(state_name, state_shape, qid):
         state_q.push_as_tensor(input, state_shape, blocking= False) #benchmark-3
         time_list[i] = end - start
         #print(f"acc-kernel, q {state_q._name} push")
-    loop_end = time.time()    
+    loop_end = time.time() 
+
+    comp_list[qid] = 1 # mark this qid as completed
+    print(f"load-gen-{qid} is done as {comp_list[qid]}")  
+
+    while comp_list[-1] == 0:  
+        time.sleep(delayed_secs)  
+        state_q.push_as_tensor(input, state_shape, blocking= False) 
 
     print(f"kernel:{np.median(time_list)}")
     print(f"acc-emu-kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
@@ -116,6 +125,7 @@ def kernel_emulation(state_name, state_shape, qid):
     time_list = np.zeros(iterations)
     # print(f"name:{state_q.name}")
     # print(f"qsize:{state_q.qsize}")
+    comp_list = shm.ShareableList(name='completion_status')
 
     if state_name == "mel_scale":
         delayed_secs = 1.5*6.498*0.001
@@ -150,6 +160,13 @@ def kernel_emulation(state_name, state_shape, qid):
         #print(f"kernel, q {state_q._name} push")
     loop_end = time.time()    
 
+    comp_list[qid] = 1 # mark this qid as completed
+    print(f"load-gen-{qid} is done as {comp_list[qid]}")
+
+    while comp_list[-1] == 0:  
+        time.sleep(delayed_secs)  
+        state_q.push_as_tensor(input, state_shape, blocking= False)
+
     print(f"kernel:{np.median(time_list)}")
     print(f"emu-kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
     #print(f"kernel:{np.median(time_list)}")
@@ -183,7 +200,7 @@ def kernel_fn(state_name, state_shape, qid):
     print(f"kernel:{np.median(time_list)}")
     print(f"kernel-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
 
-def datamotion_fn(state_name, state_shape, qid):
+def datamotion_fn(state_name, state_shape, qid, num_threads):
     proc_start = time.time()
     q_name = f"{state_name}{qid}"
     print(f"data-motion, pid {os.getpid()}")    
@@ -193,8 +210,9 @@ def datamotion_fn(state_name, state_shape, qid):
     # print(f"name:{state_q.name}")
     # print(f"qsize:{state_q.qsize}")
     time_list = np.zeros(iterations)
+    comp_list = shm.ShareableList(name='completion_status')
 
-    torch.set_num_threads(1)
+    torch.set_num_threads(num_threads)
     device = torch.device("cpu")
     if state_name == "mel_scale":
         model = mel_scale().to(device)
@@ -223,6 +241,13 @@ def datamotion_fn(state_name, state_shape, qid):
         #print(f"data-motion, q {state_q._name} pop")
     #print(input.shape)    
     loop_end = time.time()  
+
+    while comp_list[-1] == 0:  
+        input_tensor = state_q.pop_as_tensor(timeout=1)
+        if state_q.qsize == 0:
+            break
+        output = model(input_tensor)
+
     print(f"dm-{qid}, data motion:{np.median(time_list)}")
     print(f"dm-{qid}, exec:{loop_end-loop_start}, overhead:{loop_start-proc_start}")
 
@@ -238,23 +263,25 @@ acc_emulated = False
 
 benchmark_name = sys.argv[1]
 num_kernels = int(sys.argv[2])
-cores = int(sys.argv[3])
+num_cores = int(sys.argv[3])
 kernel_emulated = bool(sys.argv[4])
 acc_emulated = bool(sys.argv[5])
+num_threads = num_cores
+num_iter = int(sys.argv[6])
 
 if num_kernels == 1:
-    iterations = 3000
-    if cores == 16:
+    iterations = num_iter
+    if num_cores == 16:
         iterations = 5000
 elif num_kernels == 5:
     iterations = 2000
 elif num_kernels == 10:
     iterations = 1000 
-    if cores == 16:
+    if num_cores == 16:
         iterations = 1500
 elif num_kernels == 15:
     iterations = 500 
-    if cores == 16:
+    if num_cores == 16:
         iterations = 750
 else:
     print("invalid number of kernels")
@@ -285,6 +312,11 @@ elif benchmark_name== "concat_cast_flatten_gzip":
 
 print(f"{benchmark_name}: {shape} with max_msg_size {max_msg_size}")
 #exit()
+
+# 0 for not done, 1 for completed, comp_list[-1] is for the aggregated status
+initlist = [0] * (num_kernels + 1) 
+comp_list = shm.ShareableList(initlist, name='completion_status')
+print(comp_list)
 
 qlist = []
 #shape = (4,1024,768)
@@ -317,7 +349,7 @@ for qid in range(num_kernels):
     else:
         kernel_handle = mp.Process(target=kernel_fn, args=(state_name, shape, qid))
 
-    dm_handle = mp.Process(target=datamotion_fn, args=(state_name, shape, qid))
+    dm_handle = mp.Process(target=datamotion_fn, args=(state_name, shape, qid, num_threads))
     kernel_handle_list.append(kernel_handle)
     dm_handle_list.append(dm_handle)
 
@@ -325,6 +357,17 @@ start = time.time()
 for qid in range(num_kernels):
     dm_handle_list[qid].start()
     kernel_handle_list[qid].start()
+
+while comp_list[-1] == 0:
+    value = 1
+    for i in range(num_kernels):
+        #print(f"v:{value}, comp: {comp_list[i]}")
+        value = value and comp_list[i]
+    #print(f"termination value: {value}")
+    time.sleep(1)
+    comp_list[-1] = value 
+
+comp_list[-1] = 1
  
 for qid in range(num_kernels):
     dm_handle_list[qid].join()
@@ -343,4 +386,6 @@ for q in qlist:
     q.destory()
     #print(f"{q.name} unlinked")
 
+comp_list.shm.close()
+comp_list.shm.unlink()
 #print(f"{os.getpid()}-> {time.time()} time")
