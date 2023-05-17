@@ -1,0 +1,293 @@
+## Benchmark 2: FFT -> Data motion
+
+### (4 physical cores, 2 way of LLC, 20% of memory bandwidth)
+Command: 1 emulated kernels, using iterations = 3000  
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_triple.py ner_reshape_casting 1 4 1`  
+
+Output:  
+```
+kernel:0.009464025497436523
+acc-emu-kernel-0, exec:57.0237991809845, overhead:0.4957747459411621
+dm-0, data motion:0.022282719612121582
+dm-0, exec:97.97615957260132, overhead:0.39884042739868164
+total_req_latency:100.19744944572449
+per_req_latency:0.050098724722862246
+50.099
+```
+
+Command: 5 emulated kernels, using iterations = 1000  
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_triple.py ner_reshape_casting 5 4 1`
+
+Output:  
+```
+dm-0, data motion:0.10555601119995117
+dm-0, exec:453.0470464229584, overhead:0.8506436347961426
+kernel:0.01623988151550293
+acc-emu-kernel-3, exec:139.32827639579773, overhead:1.4970991611480713
+kernel:0.01668107509613037
+acc-emu-kernel-1, exec:138.1097388267517, overhead:1.275651454925537
+kernel:0.01598060131072998
+acc-emu-kernel-4, exec:200.2379560470581, overhead:1.3400299549102783
+kernel:0.011988639831542969
+acc-emu-kernel-0, exec:225.79050827026367, overhead:1.6409082412719727
+kernel:0.016659021377563477
+acc-emu-kernel-2, exec:143.25879502296448, overhead:1.4439582824707031
+dm-1, data motion:0.11747658252716064
+dm-1, exec:451.3671040534973, overhead:1.2303617000579834
+dm-2, data motion:0.11185932159423828
+dm-2, exec:439.34297728538513, overhead:1.3950841426849365
+dm-4, data motion:0.10197317600250244
+dm-4, exec:493.08733654022217, overhead:1.231224536895752
+dm-3, data motion:0.09624433517456055
+dm-3, exec:493.8588824272156, overhead:1.3431754112243652
+total_req_latency:496.8681445121765
+per_req_latency:0.23843407225608827
+238.434
+```
+
+Command: 10 emulated kernels, using iterations = 500
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_triple.py ner_reshape_casting 10 4 1`
+
+Output:  
+```
+total_req_latency:472.57934045791626
+per_req_latency:0.4725793404579163
+472.579
+???
+total_req_latency:520.1832060813904
+per_req_latency:0.5201832060813903
+520.183
+```
+
+Command: 15 emulated kernels, using iterations = 200
+`sudo rdtset -t 'mba=20;l3=0x03;cpu=0,2,4,8' -c 0,2,4,8  python3 kernel_dm_triple.py ner_reshape_casting 15 4 1`
+
+Output:  
+```
+total_req_latency:357.9761612415314
+per_req_latency:0.7159523224830627
+715.952
+```
+
+### (8 physical cores, 4 way of LLC, 40% of memory bandwidth)
+Command: 1 emulated kernels, using iterations = 3000 
+`sudo rdtset -t 'mba=40;l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16 python3 kernel_dm_triple.py ner_reshape_casting 1 8 1`  
+
+Output:  
+```
+total_req_latency:66.09039402008057
+per_req_latency:0.033045197010040286
+33.045
+```
+
+Command: 5 emulated kernels, using iterations = 1000 
+`sudo rdtset -t 'mba=40;l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16 python3 kernel_dm_triple.py ner_reshape_casting 5 8 1`
+
+Output:  
+```
+kernel:0.012464046478271484
+acc-emu-kernel-2, exec:44.535643339157104, overhead:1.0500719547271729
+kernel:0.012775063514709473
+acc-emu-kernel-1, exec:53.195476055145264, overhead:1.009643793106079
+kernel:0.012764692306518555
+acc-emu-kernel-4, exec:53.978811502456665, overhead:0.9785366058349609
+kernel:0.012821435928344727
+acc-emu-kernel-3, exec:77.6348774433136, overhead:0.9783482551574707
+dm-1, data motion:0.12832331657409668
+dm-1, exec:361.8749213218689, overhead:0.6680994033813477
+kernel:0.012744545936584473
+acc-emu-kernel-0, exec:57.41259407997131, overhead:1.0608000755310059
+dm-4, data motion:0.11191189289093018
+dm-4, exec:346.75941586494446, overhead:0.40294742584228516
+dm-2, data motion:0.10309898853302002
+dm-2, exec:327.984991312027, overhead:0.6973958015441895
+dm-0, data motion:0.10862720012664795
+dm-0, exec:331.71126556396484, overhead:0.7037172317504883
+dm-3, data motion:0.09277629852294922
+dm-3, exec:267.9554946422577, overhead:0.6683862209320068
+total_req_latency:364.4911684989929
+per_req_latency:0.18224558424949647
+182.246
+```
+
+Command: 10 emulated kernels, using iterations = 500  
+`sudo rdtset -t 'mba=40;l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16 python3 kernel_dm_triple.py ner_reshape_casting 10 8 1`
+
+Output:  
+```
+total_req_latency:298.4581801891327
+per_req_latency:0.29845818018913267
+298.458
+```
+
+Command: 15 emulated kernels, using iterations = 200
+`sudo rdtset -t 'mba=40;l3=0x0f;cpu=0,2,4,8,10,12,14,16' -c 0,2,4,8,10,12,14,16 python3 kernel_dm_triple.py ner_reshape_casting 15 8 1`
+
+Output:  
+```
+kernel:0.03274393081665039
+acc-emu-kernel-10, exec:37.49480152130127, overhead:1.7707035541534424
+dm-9, data motion:0.2159339189529419
+dm-9, exec:197.0069878101349, overhead:1.3153016567230225
+kernel:0.03684079647064209
+acc-emu-kernel-5, exec:66.35888814926147, overhead:2.510810136795044
+kernel:0.032836079597473145
+acc-emu-kernel-4, exec:52.91748094558716, overhead:2.7225213050842285
+kernel:0.045195579528808594
+acc-emu-kernel-7, exec:61.68654775619507, overhead:2.135023355484009
+dm-5, data motion:0.22073698043823242
+dm-5, exec:183.7462191581726, overhead:1.2161028385162354
+kernel:0.032776594161987305
+acc-emu-kernel-8, exec:37.211111307144165, overhead:2.2025294303894043
+kernel:0.04858553409576416
+acc-emu-kernel-14, exec:52.85852766036987, overhead:1.114682912826538
+kernel:0.04085540771484375
+acc-emu-kernel-9, exec:63.598609924316406, overhead:1.7788166999816895
+dm-3, data motion:0.19167256355285645
+dm-3, exec:176.0153205394745, overhead:0.9543354511260986
+kernel:0.01199185848236084
+acc-emu-kernel-13, exec:77.9108817577362, overhead:1.2151479721069336
+kernel:0.029315829277038574
+acc-emu-kernel-11, exec:69.8334596157074, overhead:1.7927916049957275
+dm-6, data motion:0.25579512119293213
+dm-6, exec:225.12718605995178, overhead:1.0991458892822266
+dm-1, data motion:0.23979079723358154
+dm-1, exec:216.2031090259552, overhead:0.901679277420044
+dm-2, data motion:0.2094515562057495
+dm-2, exec:192.0587477684021, overhead:0.8904604911804199
+dm-8, data motion:0.18863952159881592
+dm-8, exec:166.58723902702332, overhead:1.1390964984893799
+dm-13, data motion:0.2049473524093628
+dm-13, exec:161.99567651748657, overhead:0.9749999046325684
+dm-4, data motion:0.23354578018188477
+dm-4, exec:192.515061378479, overhead:1.2835023403167725
+dm-11, data motion:0.19197845458984375
+dm-11, exec:174.2071554660797, overhead:1.0271573066711426
+dm-10, data motion:0.21277570724487305
+dm-10, exec:193.05123686790466, overhead:1.0190579891204834
+dm-0, data motion:0.2345484495162964
+dm-0, exec:209.17449045181274, overhead:0.9092502593994141
+dm-12, data motion:0.21775543689727783
+dm-12, exec:241.87488508224487, overhead:1.0794217586517334
+dm-7, data motion:0.23936247825622559
+dm-7, exec:217.87557363510132, overhead:1.0830342769622803
+dm-14, data motion:0.23203182220458984
+dm-14, exec:253.70920872688293, overhead:0.7587590217590332
+total_req_latency:258.7504107952118
+per_req_latency:0.5175008215904235
+517.501
+```
+
+
+### (16 physical cores, 8 way of LLC, 80% of memory bandwidth)
+Command: 1 emulated kernels, using iterations = 5000    
+`sudo rdtset -t 'mba=80;l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30  python3 kernel_dm_triple.py ner_reshape_casting 1 16 1`  
+
+Output:  
+```
+kernel:0.009450435638427734
+acc-emu-kernel-0, exec:79.02040386199951, overhead:0.1526634693145752
+dm-0, data motion:0.009754538536071777
+dm-0, exec:140.7907338142395, overhead:0.1436312198638916
+total_req_latency:142.2532253265381
+per_req_latency:0.028450645065307617
+28.451
+```
+
+Command: 5 emulated kernels, using iterations = 2000
+`sudo rdtset -t 'mba=80;l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30 python3 kernel_dm_triple.py ner_reshape_casting 5 16 1`
+
+Output:  
+```
+kernel:0.013107895851135254
+acc-emu-kernel-3, exec:48.430405616760254, overhead:0.6098105907440186
+dm-1, data motion:0.1175452470779419
+dm-1, exec:321.89090180397034, overhead:0.4302070140838623
+dm-3, data motion:0.12539589405059814
+dm-3, exec:366.6871907711029, overhead:0.4348137378692627
+dm-4, data motion:0.11777162551879883
+dm-4, exec:320.3392102718353, overhead:0.4632582664489746
+dm-2, data motion:0.13856685161590576
+dm-2, exec:383.622859954834, overhead:0.4668409824371338
+dm-0, data motion:0.11775743961334229
+dm-0, exec:323.03113174438477, overhead:0.4819355010986328
+total_req_latency:385.48578810691833
+per_req_latency:0.19274289405345918
+192.743
+```
+
+Command: 10 emulated kernels, using iterations = 1000
+`sudo rdtset -t 'mba=80;l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30 python3 kernel_dm_triple.py ner_reshape_casting 10 16 1`
+
+Output:  
+```
+acc-emu-kernel-6, exec:60.550387144088745, overhead:1.210566520690918
+kernel:0.02863764762878418
+acc-emu-kernel-4, exec:91.65926456451416, overhead:1.066549301147461
+kernel:0.02483236789703369
+acc-emu-kernel-1, exec:108.58259391784668, overhead:0.9996223449707031
+kernel:0.02105557918548584
+acc-emu-kernel-3, exec:62.540282011032104, overhead:1.202310562133789
+kernel:0.020991086959838867
+acc-emu-kernel-9, exec:65.2107343673706, overhead:0.6744959354400635
+kernel:0.02484571933746338
+acc-emu-kernel-5, exec:101.53171157836914, overhead:0.9786770343780518
+dm-4, data motion:0.14534664154052734
+dm-4, exec:384.5829613208771, overhead:0.7554454803466797
+kernel:0.021076083183288574
+acc-emu-kernel-7, exec:77.9354510307312, overhead:1.1505663394927979
+dm-6, data motion:0.14171302318572998
+dm-6, exec:383.8310647010803, overhead:0.5794055461883545
+dm-9, data motion:0.15366697311401367
+dm-9, exec:380.0513632297516, overhead:0.41121888160705566
+dm-5, data motion:0.14136183261871338
+dm-5, exec:330.1871919631958, overhead:0.6472506523132324
+kernel:0.020909905433654785
+acc-emu-kernel-2, exec:64.4426908493042, overhead:1.0546245574951172
+dm-1, data motion:0.1452258825302124
+dm-1, exec:345.21914076805115, overhead:0.4298853874206543
+kernel:0.020998120307922363
+acc-emu-kernel-0, exec:64.18267226219177, overhead:1.235008716583252
+kernel:0.02497565746307373
+acc-emu-kernel-8, exec:86.04307699203491, overhead:0.6069505214691162
+dm-3, data motion:0.14170360565185547
+dm-3, exec:371.49910068511963, overhead:0.4432857036590576
+dm-7, data motion:0.11801838874816895
+dm-7, exec:326.4390845298767, overhead:0.6033539772033691
+dm-2, data motion:0.14578890800476074
+dm-2, exec:343.7390627861023, overhead:0.6114888191223145
+dm-8, data motion:0.14156579971313477
+dm-8, exec:372.37122535705566, overhead:0.555211067199707
+dm-0, data motion:0.14165079593658447
+dm-0, exec:371.81915044784546, overhead:0.4334757328033447
+total_req_latency:387.33166217803955
+per_req_latency:0.25822110811869303
+258.221
+```
+
+Command: 15 emulated kernels, using iterations = 750
+`sudo rdtset -t 'mba=80;l3=0xff;cpu=0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30' -c 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30 python3 kernel_dm_triple.py ner_reshape_casting 15 16 1`
+
+Output:  
+```
+acc-emu-kernel-2, exec:61.18621039390564, overhead:1.6619620323181152
+kernel:0.041161537170410156
+acc-emu-kernel-4, exec:67.25526475906372, overhead:1.7304069995880127
+dm-12, data motion:0.22179436683654785
+dm-12, exec:273.94691824913025, overhead:0.7311947345733643
+dm-14, data motion:0.23080909252166748
+dm-14, exec:284.2752914428711, overhead:0.6267695426940918
+dm-0, data motion:0.20705842971801758
+dm-0, exec:276.6432902812958, overhead:0.9908277988433838
+dm-7, data motion:0.21669209003448486
+dm-7, exec:279.546950340271, overhead:0.8274152278900146
+dm-2, data motion:0.2018977403640747
+dm-2, exec:264.083368062973, overhead:0.6436359882354736
+dm-4, data motion:0.23437750339508057
+dm-4, exec:296.50351572036743, overhead:0.6684825420379639
+dm-9, data motion:0.22080743312835693
+dm-9, exec:271.1349775791168, overhead:0.6513767242431641
+total_req_latency:298.74243092536926
+per_req_latency:0.3983232412338257
+398.323
+```
